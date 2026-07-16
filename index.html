@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Avaliação Estética Facial — MVP</title>
+<meta name="description" content="Simulador MVP de avaliação estética facial: escaneamento do rosto + dados corporais → sugestão de procedimentos para revisão profissional." />
+<style>
+  :root{--bg:#faf6f4;--panel:#fff;--ink:#2b2431;--muted:#8a8091;--rose:#c98a9b;--rose-d:#a85d72;--nude:#e8d3cc;--line:#ece3e0;--shadow:0 10px 30px rgba(120,80,90,.10)}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
+  .hero{max-width:900px;margin:0 auto;padding:70px 24px 30px;text-align:center}
+  .logo{width:60px;height:60px;border-radius:18px;background:linear-gradient(135deg,var(--rose),var(--rose-d));display:grid;place-items:center;color:#fff;font-size:30px;margin:0 auto 20px}
+  h1{font-size:32px;margin:0 0 10px}
+  .sub{color:var(--muted);font-size:16px;max-width:620px;margin:0 auto 28px}
+  .cta{display:inline-block;background:var(--rose-d);color:#fff;text-decoration:none;padding:15px 30px;border-radius:14px;font-weight:650;font-size:16px;box-shadow:var(--shadow)}
+  .cta:hover{background:#8f4a5f}
+  .cta.ghost{background:#f3e9e6;color:var(--ink);margin-left:10px}
+  .grid{max-width:900px;margin:20px auto;padding:0 24px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}.cta.ghost{margin:10px 0 0}}
+  .doc{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;text-decoration:none;color:var(--ink);box-shadow:var(--shadow);display:block}
+  .doc:hover{border-color:var(--rose)}
+  .doc .ic{font-size:24px}
+  .doc h3{margin:10px 0 6px;font-size:15px}
+  .doc p{margin:0;font-size:12px;color:var(--muted)}
+  .disclaimer{max-width:900px;margin:24px auto 60px;padding:16px 24px;font-size:12px;color:var(--muted)}
+  .disclaimer div{background:#f8f1ee;border:1px solid var(--nude);border-radius:12px;padding:14px}
+  .badge{display:inline-block;font-size:12px;color:var(--rose-d);background:#fbeef1;border:1px solid var(--nude);padding:5px 12px;border-radius:999px;margin-bottom:22px}
+</style>
+</head>
+<body>
+  <div class="hero">
+    <div class="logo">✦</div>
+    <div class="badge">Ferramenta de apoio à decisão · revisão profissional obrigatória</div>
+    <h1>Avaliação Estética Facial</h1>
+    <p class="sub">Protótipo (MVP) que combina <b>escaneamento do rosto</b> por visão computacional com <b>dados corporais</b> (peso, altura, IMC, meta) para <b>sugerir um plano de procedimentos</b> — sempre para revisão do profissional.</p>
+    <a class="cta" href="./simulador.html">▶ Abrir o simulador</a>
+    <a class="cta ghost" href="https://github.com/anaraque-l/estetica-facial-mvp">Ver no GitHub</a>
+  </div>
+
+  <div class="grid">
+    <a class="doc" href="https://github.com/anaraque-l/estetica-facial-mvp/blob/main/PLANO_MVP_NAO_TECNICO.md">
+      <div class="ic">📋</div><h3>Plano — Não técnico</h3>
+      <p>Fluxo em 6 passos, o que é a "boneca", exemplos de procedimentos, cronograma.</p>
+    </a>
+    <a class="doc" href="https://github.com/anaraque-l/estetica-facial-mvp/blob/main/PLANO_MVP_TECNICO.md">
+      <div class="ic">⚙️</div><h3>Plano — Técnico</h3>
+      <p>Requisitos, arquitetura, motor de regras, métricas faciais, LGPD/ANVISA.</p>
+    </a>
+    <a class="doc" href="https://github.com/anaraque-l/estetica-facial-mvp/blob/main/PLATAFORMAS_E_APIS.md">
+      <div class="ic">🔎</div><h3>Plataformas & APIs</h3>
+      <p>Concorrentes, APIs grátis/pagas de visão computacional e scanners 3D baratos.</p>
+    </a>
+  </div>
+
+  <div class="disclaimer">
+    <div><strong>⚠️ Aviso.</strong> Este material é um protótipo/estudo. O simulador <b>não realiza diagnóstico e não prescreve</b>. As sugestões são um ponto de partida e devem ser revisadas, editadas ou descartadas por profissional habilitado. Simulação ilustrativa, sem promessa de resultado. O uso de imagem e dados de saúde exige consentimento (LGPD).</div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Avaliação Estética Facial — Simulador (MVP)</title>
+<style>
+  :root{
+    --bg:#faf6f4; --panel:#ffffff; --ink:#2b2431; --muted:#8a8091;
+    --rose:#c98a9b; --rose-d:#a85d72; --nude:#e8d3cc; --line:#ece3e0;
+    --ok:#4a9b7f; --warn:#c98a3a; --hi:#b8455f; --shadow:0 10px 30px rgba(120,80,90,.10);
+    --r:16px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);}
+  header{padding:18px 26px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--line);background:#fff;position:sticky;top:0;z-index:20}
+  .logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--rose),var(--rose-d));display:grid;place-items:center;color:#fff;font-size:20px}
+  header h1{font-size:16px;margin:0;font-weight:650}
+  header small{color:var(--muted);font-weight:400}
+  .badge{margin-left:auto;font-size:11px;color:var(--rose-d);background:#fbeef1;border:1px solid var(--nude);padding:5px 10px;border-radius:999px}
+
+  .wrap{max-width:1180px;margin:20px auto;padding:0 20px 60px;display:grid;grid-template-columns:1.15fr .85fr;gap:20px}
+  @media(max-width:900px){.wrap{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px}
+  .card h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 14px}
+  .step-n{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--rose);color:#fff;font-size:11px;margin-right:7px}
+
+  /* stepper */
+  .steps{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+  .steps div{flex:1;min-width:70px;text-align:center;font-size:11px;color:var(--muted);padding:8px 4px;border-radius:10px;background:#f6eeeb;border:1px solid transparent}
+  .steps div.active{background:#fff;border-color:var(--nude);color:var(--rose-d);font-weight:650}
+  .steps div.done{color:var(--ok)}
+
+  /* capture */
+  .stage{position:relative;aspect-ratio:4/3;background:#1c1620;border-radius:14px;overflow:hidden;display:grid;place-items:center}
+  video,canvas.feed,img.feed{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .overlay{position:absolute;inset:0;pointer-events:none;z-index:3}
+  .doll{position:absolute;inset:0;display:grid;place-items:center;z-index:2;opacity:.55}
+  .doll svg{width:55%;height:80%}
+  .hint{position:absolute;bottom:10px;left:0;right:0;text-align:center;color:#fff;font-size:12px;z-index:4;text-shadow:0 1px 4px #000}
+  .scanline{position:absolute;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--rose),transparent);box-shadow:0 0 14px 3px rgba(201,138,155,.7);z-index:4;display:none}
+
+  .pose-tabs{display:flex;gap:8px;margin:12px 0}
+  .pose-tabs button{flex:1;padding:9px;border:1px solid var(--line);background:#fff;border-radius:10px;font-size:12px;cursor:pointer;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:4px}
+  .pose-tabs button.active{border-color:var(--rose);color:var(--rose-d);background:#fdf6f8;font-weight:600}
+  .pose-tabs button.captured{border-color:var(--ok);color:var(--ok)}
+  .pose-tabs .dot{font-size:16px}
+
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  button.btn{border:0;border-radius:11px;padding:11px 16px;font-size:13px;font-weight:600;cursor:pointer}
+  .btn-primary{background:var(--rose-d);color:#fff}
+  .btn-primary:hover{background:#8f4a5f}
+  .btn-ghost{background:#f3e9e6;color:var(--ink)}
+  .btn-ghost:hover{background:#ecdcd7}
+  button:disabled{opacity:.45;cursor:not-allowed}
+
+  /* form */
+  label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px}
+  input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-family:inherit;background:#fff}
+  input:focus,textarea:focus,select:focus{outline:2px solid var(--nude);border-color:var(--rose)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .imc-box{margin-top:12px;padding:12px;border-radius:12px;background:#f8f1ee;display:flex;justify-content:space-between;align-items:center}
+  .imc-val{font-size:24px;font-weight:700}
+  .chip{font-size:11px;padding:3px 9px;border-radius:999px;font-weight:600}
+
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .chips span{font-size:11px;background:#f3e9e6;border:1px solid var(--line);padding:5px 10px;border-radius:999px;cursor:pointer;user-select:none}
+  .chips span.on{background:var(--rose);color:#fff;border-color:var(--rose)}
+
+  /* metrics */
+  .metric{margin:9px 0}
+  .metric .top{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px}
+  .bar{height:7px;background:#f0e6e3;border-radius:99px;overflow:hidden}
+  .bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--rose),var(--rose-d))}
+
+  /* suggestions */
+  .sug{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;position:relative}
+  .sug h4{margin:0 0 4px;font-size:14px}
+  .sug p{margin:2px 0;font-size:12px;color:var(--muted)}
+  .sug .why{font-size:11px;color:var(--rose-d);background:#fdf6f8;border-radius:8px;padding:6px 8px;margin-top:7px}
+  .prio{position:absolute;top:12px;right:12px;font-size:10px;padding:3px 8px;border-radius:999px;font-weight:700;text-transform:uppercase}
+  .prio.alta{background:#fbe6ea;color:var(--hi)}
+  .prio.media{background:#fdf1e4;color:var(--warn)}
+  .prio.baixa{background:#eaf5f0;color:var(--ok)}
+  .sug .acts{margin-top:9px;display:flex;gap:6px}
+  .sug .acts button{font-size:11px;padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:#fff;cursor:pointer}
+  .sug.rejected{opacity:.4}
+  .sug.rejected .why{display:none}
+
+  /* avatar map */
+  .avatar{position:relative;background:#faf1ee;border-radius:12px;padding:10px;text-align:center}
+  .avatar svg{width:150px;height:200px}
+  .marker{fill:var(--rose-d);opacity:.85}
+  .disclaimer{font-size:11px;color:var(--muted);background:#f8f1ee;border:1px solid var(--nude);border-radius:12px;padding:12px;margin-top:16px;line-height:1.5}
+  .foot{max-width:1180px;margin:0 auto;padding:0 20px 40px;font-size:11px;color:var(--muted)}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">✦</div>
+  <div>
+    <h1>Avaliação Estética Facial <small>· Simulador MVP</small></h1>
+  </div>
+  <span class="badge">Apoio à decisão · revisão profissional obrigatória</span>
+</header>
+
+<div class="wrap">
+  <!-- COLUNA ESQUERDA: captura + análise -->
+  <div class="card">
+    <div class="steps" id="steps">
+      <div data-s="1" class="active">1 · Captura</div>
+      <div data-s="2">2 · Dados</div>
+      <div data-s="3">3 · Análise</div>
+      <div data-s="4">4 · Plano</div>
+    </div>
+
+    <h2><span class="step-n">1</span>Captura guiada pela boneca</h2>
+
+    <div class="pose-tabs" id="poseTabs">
+      <button data-pose="frontal" class="active"><span class="dot">🙂</span>Frontal</button>
+      <button data-pose="lateral"><span class="dot">🙄</span>Perfil</button>
+      <button data-pose="colo"><span class="dot">👤</span>Colo</button>
+    </div>
+
+    <div class="stage" id="stage">
+      <video id="video" autoplay playsinline muted></video>
+      <img id="still" class="feed hidden" alt="captura" />
+      <canvas id="mesh" class="overlay"></canvas>
+      <div class="doll" id="doll"></div>
+      <div class="scanline" id="scanline"></div>
+      <div class="hint" id="hint">Posicione o rosto conforme a silhueta e clique em Capturar</div>
+    </div>
+
+    <div class="row" style="margin-top:12px">
+      <button class="btn btn-ghost" id="btnCam">📷 Ligar câmera</button>
+      <label class="btn btn-ghost" style="margin:0;display:inline-flex;align-items:center">⬆️ Enviar foto
+        <input type="file" id="file" accept="image/*" class="hidden" />
+      </label>
+      <button class="btn btn-primary" id="btnCap" style="margin-left:auto">Capturar pose</button>
+    </div>
+
+    <div style="margin-top:16px">
+      <h2><span class="step-n">3</span>Análise (visão computacional)</h2>
+      <div id="metrics"><p style="font-size:12px;color:var(--muted)">Capture as poses e rode a análise para ver as métricas faciais.</p></div>
+      <button class="btn btn-primary" id="btnAnalyze" style="width:100%;margin-top:8px" disabled>Analisar rosto</button>
+    </div>
+  </div>
+
+  <!-- COLUNA DIREITA: dados + plano -->
+  <div>
+    <div class="card">
+      <h2><span class="step-n">2</span>Dados corporais</h2>
+      <div class="grid2">
+        <div><label>Peso (kg)</label><input type="number" id="peso" value="78" step="0.1"></div>
+        <div><label>Altura (m)</label><input type="number" id="altura" value="1.65" step="0.01"></div>
+      </div>
+      <div class="grid2">
+        <div><label>Meta de perda (kg)</label><input type="number" id="meta" value="10" step="0.5"></div>
+        <div><label>Idade</label><input type="number" id="idade" value="42"></div>
+      </div>
+      <div class="imc-box">
+        <div><div style="font-size:11px;color:var(--muted)">IMC</div><div class="imc-val" id="imcVal">—</div></div>
+        <span class="chip" id="imcChip">—</span>
+      </div>
+      <label>Queixas / áreas de interesse</label>
+      <div class="chips" id="chips">
+        <span data-q="papada">Papada</span>
+        <span data-q="queixo">Queixo/perfil</span>
+        <span data-q="rugas">Rugas testa</span>
+        <span data-q="flacidez">Flacidez</span>
+        <span data-q="sulco">Sulco nasogeniano</span>
+        <span data-q="olheira">Olheiras</span>
+        <span data-q="pele">Qualidade da pele</span>
+        <span data-q="colo">Pescoço/colo</span>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px">
+      <h2><span class="step-n">4</span>Plano sugerido <small style="text-transform:none;color:var(--muted)">(revise cada item)</small></h2>
+      <div style="display:flex;gap:14px;align-items:flex-start">
+        <div class="avatar" style="flex:0 0 auto">
+          <svg viewBox="0 0 120 160" id="avatarSvg">
+            <ellipse cx="60" cy="55" rx="32" ry="40" fill="#f0dcd6"/>
+            <path d="M32 92 Q60 130 88 92 L92 150 L28 150 Z" fill="#f0dcd6"/>
+            <g id="markers"></g>
+          </svg>
+          <div style="font-size:10px;color:var(--muted)">áreas do plano</div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div id="suggestions"><p style="font-size:12px;color:var(--muted)">O plano aparece aqui após a análise.</p></div>
+        </div>
+      </div>
+      <div class="row" style="margin-top:6px">
+        <button class="btn btn-ghost" id="btnExport" disabled>⬇️ Exportar (JSON)</button>
+        <button class="btn btn-primary" id="btnReset" style="margin-left:auto">Nova avaliação</button>
+      </div>
+    </div>
+
+    <div class="disclaimer">
+      <strong>⚠️ Aviso.</strong> Este simulador é uma <b>ferramenta de apoio à decisão</b>, não realiza diagnóstico e não prescreve.
+      As sugestões são um ponto de partida e devem ser <b>revisadas, editadas ou descartadas por profissional habilitado</b>.
+      Simulação ilustrativa, sem promessa de resultado. Uso de imagem e dados de saúde exige consentimento (LGPD).
+    </div>
+  </div>
+</div>
+
+<div class="foot">
+  Protótipo Fase 0 · tela única · processamento local no navegador · MediaPipe/regras entram atrás do provider (ver PLANO_MVP_TECNICO.md)
+</div>
+
+<script>
+/* ---------- Bonecas (SVG) por pose ---------- */
+const DOLLS = {
+  frontal: `<svg viewBox="0 0 100 140" fill="none" stroke="#fff" stroke-width="2">
+    <ellipse cx="50" cy="48" rx="26" ry="34"/><line x1="50" y1="20" x2="50" y2="80"/>
+    <circle cx="40" cy="45" r="3"/><circle cx="60" cy="45" r="3"/><path d="M42 62 Q50 68 58 62"/>
+    <path d="M30 88 Q50 110 70 88"/></svg>`,
+  lateral: `<svg viewBox="0 0 100 140" fill="none" stroke="#fff" stroke-width="2">
+    <path d="M62 16 Q40 20 38 50 Q37 66 44 74 L40 82 Q46 88 44 96"/>
+    <path d="M44 74 Q34 74 34 62"/><circle cx="48" cy="46" r="2.5"/>
+    <path d="M44 96 Q60 100 66 88"/><path d="M62 16 Q78 30 70 60 Q66 80 60 92"/></svg>`,
+  colo: `<svg viewBox="0 0 100 140" fill="none" stroke="#fff" stroke-width="2">
+    <ellipse cx="50" cy="34" rx="18" ry="22"/><path d="M40 54 Q50 64 60 54"/>
+    <path d="M24 128 Q50 78 76 128"/><line x1="50" y1="60" x2="50" y2="96"/></svg>`
+};
+const HINTS = {
+  frontal:"Rosto de frente, olhos na altura da linha — clique em Capturar",
+  lateral:"Vire o rosto 90° (perfil) para avaliar queixo e papada",
+  colo:"Enquadre pescoço e colo, queixo levemente elevado"
+};
+
+/* ---------- Estado ---------- */
+let currentPose = 'frontal';
+const captures = {};       // pose -> dataURL
+let metrics = null;
+let plan = [];
+const selectedQ = new Set();
+
+const $ = id => document.getElementById(id);
+const video=$('video'), still=$('still'), stage=$('stage'), doll=$('doll'),
+      mesh=$('mesh'), scanline=$('scanline'), hint=$('hint');
+
+/* ---------- Boneca / poses ---------- */
+function renderDoll(){ doll.innerHTML = DOLLS[currentPose]; hint.textContent = HINTS[currentPose]; }
+document.querySelectorAll('#poseTabs button').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('#poseTabs button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); currentPose=b.dataset.pose; renderDoll();
+    if(captures[currentPose]){ showStill(captures[currentPose]); } else { showLive(); }
+  };
+});
+renderDoll();
+
+/* ---------- Câmera ---------- */
+let stream=null;
+$('btnCam').onclick=async()=>{
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({video:{width:640,height:480,facingMode:'user'}});
+    video.srcObject=stream; showLive(); hint.textContent=HINTS[currentPose];
+  }catch(e){ hint.textContent='Não foi possível acessar a câmera — use "Enviar foto".'; }
+};
+function showLive(){ video.classList.remove('hidden'); still.classList.add('hidden'); clearMesh(); }
+function showStill(src){ still.src=src; still.classList.remove('hidden'); video.classList.add('hidden'); }
+
+/* ---------- Upload ---------- */
+$('file').onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader(); r.onload=()=>{ captures[currentPose]=r.result; showStill(r.result); markCaptured(); }; r.readAsDataURL(f);
+};
+
+/* ---------- Capturar frame ---------- */
+$('btnCap').onclick=()=>{
+  if(!video.classList.contains('hidden') && stream){
+    const c=document.createElement('canvas'); c.width=video.videoWidth||640; c.height=video.videoHeight||480;
+    c.getContext('2d').drawImage(video,0,0,c.width,c.height);
+    captures[currentPose]=c.toDataURL('image/jpeg',.85); showStill(captures[currentPose]);
+  }else if(still.src && !still.classList.contains('hidden')){
+    captures[currentPose]=still.src;
+  }else{
+    // sem câmera nem foto: registra captura simulada
+    captures[currentPose]='sim';
+  }
+  markCaptured(); runScanAnim();
+};
+function markCaptured(){
+  document.querySelectorAll('#poseTabs button').forEach(b=>{ if(captures[b.dataset.pose]) b.classList.add('captured'); });
+  $('btnAnalyze').disabled = Object.keys(captures).length===0;
+  setStep(Object.keys(captures).length>=1?2:1);
+}
+
+/* ---------- Animação de scan + malha simulada ---------- */
+function clearMesh(){ mesh.getContext('2d').clearRect(0,0,mesh.width,mesh.height); }
+function runScanAnim(){
+  scanline.style.display='block'; scanline.style.top='0';
+  let y=0; const t=setInterval(()=>{ y+=4; scanline.style.top=y+'%'; if(y>=100){clearInterval(t);scanline.style.display='none';drawMeshOverlay();} },16);
+}
+function drawMeshOverlay(){
+  const r=stage.getBoundingClientRect(); mesh.width=r.width; mesh.height=r.height;
+  const ctx=mesh.getContext('2d'); clearMesh();
+  const cx=r.width/2, cy=r.height*0.46, rx=r.width*0.18, ry=r.height*0.28;
+  ctx.strokeStyle='rgba(201,138,155,.55)'; ctx.fillStyle='rgba(201,138,155,.9)'; ctx.lineWidth=1;
+  const pts=[];
+  for(let i=0;i<64;i++){ const a=(i/64)*Math.PI*2; pts.push([cx+Math.cos(a)*rx*(0.8+0.2*Math.sin(a*3)), cy+Math.sin(a)*ry]); }
+  // teia
+  for(let i=0;i<pts.length;i++){ for(let j=i+1;j<pts.length;j++){ const dx=pts[i][0]-pts[j][0],dy=pts[i][1]-pts[j][1]; if(dx*dx+dy*dy<1600){ctx.beginPath();ctx.moveTo(...pts[i]);ctx.lineTo(...pts[j]);ctx.stroke();} } }
+  pts.forEach(p=>{ctx.beginPath();ctx.arc(p[0],p[1],1.6,0,7);ctx.fill();});
+  // pontos-chave
+  [['queixo',cx,cy+ry],['mandíbula E',cx-rx,cy+ry*0.5],['mandíbula D',cx+rx,cy+ry*0.5],['testa',cx,cy-ry*0.7]].forEach(([lb,x,y])=>{
+    ctx.fillStyle='rgba(168,93,114,1)';ctx.beginPath();ctx.arc(x,y,3.2,0,7);ctx.fill();
+  });
+}
+
+/* ---------- IMC ---------- */
+function calcIMC(){
+  const p=parseFloat($('peso').value), a=parseFloat($('altura').value);
+  if(!p||!a){ $('imcVal').textContent='—'; return null; }
+  const imc=p/(a*a);
+  $('imcVal').textContent=imc.toFixed(1);
+  let txt,col; if(imc<18.5){txt='Abaixo';col='#4a78c9';} else if(imc<25){txt='Normal';col=getCss('--ok');}
+  else if(imc<30){txt='Sobrepeso';col=getCss('--warn');} else {txt='Obesidade';col=getCss('--hi');}
+  const chip=$('imcChip'); chip.textContent=txt; chip.style.background=col+'22'; chip.style.color=col;
+  return imc;
+}
+function getCss(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+['peso','altura'].forEach(id=>$(id).addEventListener('input',calcIMC)); calcIMC();
+
+/* ---------- Chips de queixa ---------- */
+document.querySelectorAll('#chips span').forEach(s=>{
+  s.onclick=()=>{ s.classList.toggle('on'); s.classList.contains('on')?selectedQ.add(s.dataset.q):selectedQ.delete(s.dataset.q); };
+});
+
+/* ---------- Motor de análise (simulado / provider) ---------- */
+function analyzeFace(){
+  // Em produção: MediaPipe Face Landmarker -> derivar métricas geométricas.
+  // Aqui: métricas plausíveis influenciadas por IMC e queixas selecionadas (mock explicável).
+  const imc=calcIMC()||24;
+  const bump=(base,cond)=> Math.min(1, base + (cond?0.28:0) + (Math.random()*0.12));
+  const imcFactor=Math.max(0,(imc-24)/12); // rosto "mais cheio" com IMC alto
+  return {
+    submentalFullness: Math.min(1, 0.35 + imcFactor*0.5 + (selectedQ.has('papada')?0.2:0)),
+    jawlineDefinition:  Math.max(0.15, 0.7 - imcFactor*0.4 - (selectedQ.has('flacidez')?0.2:0)),
+    chinProjection:     bump(0.35, selectedQ.has('queixo')) - 0.1,
+    neckLaxity:         bump(0.35, selectedQ.has('colo')||selectedQ.has('flacidez')),
+    nasolabialDepth:    bump(0.3, selectedQ.has('sulco')),
+    underEyeHollow:     bump(0.3, selectedQ.has('olheira')),
+    foreheadDynamicLines:bump(0.3, selectedQ.has('rugas')),
+    skinQuality:        Math.max(0.2, 0.75 - (selectedQ.has('pele')?0.35:0) - imcFactor*0.1),
+    faceSymmetry:       0.82+Math.random()*0.1
+  };
+}
+
+/* ---------- Motor de regras ---------- */
+function buildPlan(m){
+  const imc=calcIMC()||24, meta=parseFloat($('meta').value)||0;
+  const R=[];
+  if(meta>=8) R.push({t:'Encaminhamento nutricional / avaliação de emagrecimento',area:'corporal',prio:'alta',
+     why:`Meta de perda de ${meta} kg (IMC ${imc.toFixed(1)}): priorizar emagrecimento antes do contorno facial — o rosto muda com a perda de peso.`});
+  if(m.submentalFullness>=0.6) R.push({t:'Redução de papada (enzimas / criolipólise submentoniana)',area:'papada',prio:'media',
+     why:`Gordura submentoniana elevada (${pct(m.submentalFullness)})${imc>=27?' + IMC alto — reavaliar após meta de peso':''}.`});
+  if(m.chinProjection<=0.4) R.push({t:'Preenchimento de mento (projeção de queixo)',area:'queixo',prio:'media',
+     why:`Perfil com pouca projeção do mento (${pct(m.chinProjection)}).`});
+  if(m.foreheadDynamicLines>=0.5) R.push({t:'Toxina botulínica — terço superior',area:'testa',prio:'alta',
+     why:`Rugas dinâmicas presentes na testa/glabela (${pct(m.foreheadDynamicLines)}).`});
+  if(m.jawlineDefinition<=0.45 && m.neckLaxity>=0.5) R.push({t:'Bioestimulador de colágeno / avaliar fios de sustentação',area:'contorno',prio:'media',
+     why:`Contorno mandibular pouco definido (${pct(m.jawlineDefinition)}) com flacidez cervical (${pct(m.neckLaxity)}).`});
+  if(m.nasolabialDepth>=0.55) R.push({t:'Preenchimento de sulco nasogeniano',area:'sulco',prio:'baixa',
+     why:`Sulco nasogeniano marcado (${pct(m.nasolabialDepth)}).`});
+  if(m.underEyeHollow>=0.55) R.push({t:'Preenchimento / skinbooster de olheira (tear trough)',area:'olheira',prio:'baixa',
+     why:`Depressão infraorbital (${pct(m.underEyeHollow)}).`});
+  if(m.skinQuality<=0.45) R.push({t:'Skinbooster / protocolo de qualidade de pele',area:'pele',prio:'baixa',
+     why:`Qualidade de pele reduzida (${pct(m.skinQuality)}).`});
+  if(R.length===0) R.push({t:'Manutenção / hidratação e fotoproteção',area:'pele',prio:'baixa',why:'Sem indicações relevantes detectadas nesta simulação.'});
+  const order={alta:0,media:1,baixa:2};
+  return R.sort((a,b)=>order[a.prio]-order[b.prio]).map((r,i)=>({...r,id:i,status:'pending'}));
+}
+const pct=v=>Math.round(v*100)+'%';
+
+/* ---------- Render métricas ---------- */
+const METRIC_LABELS={submentalFullness:'Papada (submental)',jawlineDefinition:'Definição da mandíbula',chinProjection:'Projeção do queixo',neckLaxity:'Flacidez pescoço/colo',nasolabialDepth:'Sulco nasogeniano',underEyeHollow:'Olheira (tear trough)',foreheadDynamicLines:'Rugas dinâmicas (testa)',skinQuality:'Qualidade da pele',faceSymmetry:'Simetria facial'};
+function renderMetrics(m){
+  $('metrics').innerHTML=Object.entries(m).map(([k,v])=>`
+    <div class="metric"><div class="top"><span>${METRIC_LABELS[k]||k}</span><span>${pct(v)}</span></div>
+    <div class="bar"><i style="width:${Math.round(v*100)}%"></i></div></div>`).join('');
+}
+
+/* ---------- Render plano + avatar ---------- */
+const AREA_XY={corporal:[60,140],papada:[60,95],queixo:[60,88],testa:[60,32],contorno:[88,70],sulco:[70,62],olheira:[68,48],pele:[45,55]};
+function renderPlan(){
+  const el=$('suggestions');
+  el.innerHTML=plan.map(s=>`
+    <div class="sug ${s.status==='rejected'?'rejected':''}" data-id="${s.id}">
+      <span class="prio ${s.prio}">${s.prio}</span>
+      <h4>${s.t}</h4>
+      <p>Área: ${s.area}</p>
+      <div class="why">Por quê: ${s.why}</div>
+      <div class="acts">
+        <button data-a="accept">${s.status==='accepted'?'✔ Aceito':'Aceitar'}</button>
+        <button data-a="reject">${s.status==='rejected'?'Restaurar':'Descartar'}</button>
+      </div>
+    </div>`).join('');
+  el.querySelectorAll('.sug').forEach(node=>{
+    const id=+node.dataset.id;
+    node.querySelector('[data-a="accept"]').onclick=()=>{plan[id].status='accepted';renderPlan();};
+    node.querySelector('[data-a="reject"]').onclick=()=>{plan[id].status=plan[id].status==='rejected'?'pending':'rejected';renderPlan();};
+  });
+  // marcadores no avatar (só itens não descartados)
+  $('markers').innerHTML=plan.filter(s=>s.status!=='rejected').map(s=>{
+    const xy=AREA_XY[s.area]||[60,90]; const c=s.prio==='alta'?'#b8455f':s.prio==='media'?'#c98a3a':'#4a9b7f';
+    return `<circle class="marker" cx="${xy[0]}" cy="${xy[1]}" r="6" fill="${c}"><title>${s.t}</title></circle>`;
+  }).join('');
+  $('btnExport').disabled=false;
+}
+
+/* ---------- Ações principais ---------- */
+$('btnAnalyze').onclick=()=>{
+  setStep(3);
+  metrics=analyzeFace(); renderMetrics(metrics);
+  plan=buildPlan(metrics); renderPlan();
+  setStep(4);
+  document.querySelector('.card:nth-child(1)');
+};
+$('btnExport').onclick=()=>{
+  const imc=calcIMC();
+  const data={createdAt:new Date? '(data local)':'', body:{peso:+$('peso').value,altura:+$('altura').value,imc:imc&&+imc.toFixed(1),meta:+$('meta').value,idade:+$('idade').value},
+    queixas:[...selectedQ], metrics, plano:plan.filter(s=>s.status!=='rejected').map(s=>({procedimento:s.t,area:s.area,prioridade:s.prio,status:s.status,justificativa:s.why})),
+    aviso:'Apoio à decisão. Revisão profissional obrigatória. Simulação ilustrativa.'};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='avaliacao-estetica.json'; a.click();
+};
+$('btnReset').onclick=()=>location.reload();
+
+/* ---------- Stepper ---------- */
+function setStep(n){ document.querySelectorAll('#steps div').forEach(d=>{const s=+d.dataset.s; d.classList.toggle('active',s===n); d.classList.toggle('done',s<n);}); }
+</script>
+</body>
+</html>
