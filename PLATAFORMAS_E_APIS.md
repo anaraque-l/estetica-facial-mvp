@@ -57,21 +57,60 @@ Essas já fazem, no todo ou em parte, o que você descreveu. Servem para: (a) en
 
 ---
 
-## 3. Scanners 3D baratos (hardware / apps de celular)
+## 3. Formas de escanear o rosto em 3D (métodos + opções gratuitas)
 
-Se quiser ir além da foto 2D e capturar **volume/perfil real**:
+"Scanner 3D" é só **uma família** de métodos. O que importa para estética é capturar profundidade/volume (perfil, projeção de queixo, papada) — e há várias formas, muitas **de graça e sem hardware especial**. O custo muda conforme o **método de captura**.
 
-| Opção | Como | Custo |
-|---|---|---|
-| **iPhone/iPad com TrueDepth (FaceID)** | A câmera TrueDepth já projeta pontos infravermelhos e gera malha 3D do rosto. | Custo do aparelho (já existe na clínica) |
-| **Scandy Pro** (iOS) | App de scan 3D com TrueDepth; exporta malha. | App barato / freemium |
-| **Heges** (iOS) | Scan 3D com FaceID/LiDAR; exporta PLY. | App barato |
-| **SureScan 3D / 3D Scanner App** (iOS) | Scan facial de qualidade (usado até em odonto). | Freemium |
-| **Polycam** (iOS/Android) | Fotogrametria + LiDAR; bom para objetos e rosto. | Freemium/assinatura |
-| **Fotogrametria com fotos comuns** | Várias fotos do rosto → malha 3D via software (Meshroom grátis, RealityCapture). | Grátis a barato |
-| **VISIA / VECTRA (Canfield), LifeViz (Quantificare)** | Hardware clínico dedicado, padrão-ouro. | **Caro** (dezenas de milhares) |
+### 3.1 Panorama dos métodos
 
-➡️ **Custo-benefício:** para começar, **iPhone com TrueDepth + app de scan** entrega 3D real por quase nada. Para 2D puro, **qualquer webcam + MediaPipe** já resolve o MVP.
+| Método | Como funciona | Precisa hardware especial? | Custo |
+|---|---|---|---|
+| **1. Foto única + IA (3DMM)** | Uma IA reconstrói a malha 3D a partir de **uma foto comum** | ❌ Qualquer celular/webcam | **Grátis** ⭐ |
+| **2. FaceMesh (MediaPipe)** | 478 pontos com coordenada Z a partir da câmera 2D | ❌ Qualquer webcam | **Grátis** ⭐ |
+| **3. Fotogrametria** | Várias fotos ao redor do rosto → software monta a malha | ❌ Qualquer câmera | **Grátis** |
+| **4. Câmera de profundidade (structured light)** | Projetor IR de pontos (TrueDepth/FaceID) | ✅ iPhone/iPad com FaceID | Grátis (app) + aparelho |
+| **5. LiDAR / ToF** | Sensor mede tempo de retorno da luz | ✅ iPhone Pro, alguns Android | Grátis (app) + aparelho |
+| **6. Estéreo (2 câmeras)** | Duas lentes calculam profundidade por paralaxe | ⚠️ Celular com 2 câmeras | Grátis |
+| **7. NeRF / Gaussian Splatting** | Vídeo curto → IA reconstrói a cena 3D | ❌ Qualquer câmera (processa depois) | Grátis/freemium |
+| **8. Scanner dedicado barato** | Hardware USB de baixo custo | ✅ | Baixo a médio |
+
+### 3.2 Melhores opções gratuitas, por método
+
+**⭐ Método 1 — Foto única + IA (o mais barato; recomendado para começar)**
+Reconstrói um rosto 3D a partir de **uma única foto normal** — sem iPhone caro, sem sensor. Open-source:
+- **DECA** / **EMOCA** — rosto 3D + expressão de uma foto (modelo FLAME).
+- **MICA** — foco em geometria precisa.
+- **3DDFA_V2** — leve e rápido, bom para pose/perfil.
+- **Deep3DFaceRecon** (Microsoft) — clássico baseado em 3DMM.
+- **FLAME** — o "esqueleto" 3D de cabeça usado por baixo da maioria.
+
+**⭐ Método 2 — MediaPipe FaceMesh (já usado no `simulador.html`)**
+Os 478 pontos do MediaPipe **já têm coordenada Z** (profundidade relativa). Não é scan clínico, mas mede **projeção de queixo, ângulo cervicomental (papada) e simetria** de graça, com qualquer webcam. É o "3D dos pobres" — suficiente para o MVP.
+
+**Método 3 — Fotogrametria (grátis)**
+- **Meshroom** (AliceVision) — pipeline completo, open-source.
+- **COLMAP** — padrão acadêmico (structure-from-motion).
+- **openMVG / MicMac** — bibliotecas open-source.
+- No celular: **KIRI Engine** (grátis com limite: até 70 fotos/scan, 3 exports/semana) e **Polycam** (freemium). Técnica: dar a volta de orelha a orelha mantendo distância constante.
+
+**Métodos 4 e 5 — Depth camera / LiDAR (app grátis, precisa do aparelho)**
+- **iPhone/iPad com FaceID** (structured light) ou **iPhone Pro** (LiDAR). Apps grátis/baratos: **Heges**, **Scandy Pro**, **3D Scanner App**, **SureScan 3D**. Exportam `.ply/.obj`. Qualidade bem acima da foto 2D — e a clínica provavelmente já tem um iPhone.
+
+**Método 6 — Estéreo (2 câmeras)**
+- Celulares com câmera dupla permitem estimar profundidade por paralaxe (OpenCV `StereoBM/StereoSGBM`). Menos usado para rosto; mais trabalhoso de calibrar.
+
+**Método 7 — NeRF / Gaussian Splatting**
+- **Luma AI** e **Polycam** (Gaussian Splatting): grava-se um vídeo curto girando ao redor do rosto e a nuvem reconstrói. Freemium. Ótimo para "antes/depois" imersivo — exagero para o MVP.
+
+**Método 8 — Hardware clínico (padrão-ouro, caro)**
+- **VISIA / VECTRA (Canfield)**, **LifeViz (Quantificare)**. Dezenas de milhares. Só faz sentido em fase avançada.
+
+➡️ **Custo-benefício:** para estética você **não precisa de scanner 3D real no MVP**. Ordem recomendada:
+1. **Agora (grátis, zero hardware):** MediaPipe FaceMesh (métricas de perfil/queixo/papada) + opcionalmente **foto única + IA (DECA/3DDFA)** para uma malha 3D bonita de mostrar à paciente.
+2. **3D real quando a clínica tiver iPhone:** app TrueDepth/LiDAR (Heges/Scandy) exportando `.ply/.obj`.
+3. **Precisão premium:** hardware clínico (VECTRA/LifeViz) — só na fase avançada.
+
+> **Pulo do gato:** para avaliar **papada e projeção de queixo**, o que importa é o **perfil 2D bem enquadrado** — e isso o MediaPipe mede de graça. O 3D "de verdade" agrega mais no *marketing/visual* do que na decisão clínica.
 
 ---
 
@@ -88,6 +127,14 @@ Webcam → getUserMedia → <video>
 - Stack: Next.js/React + TypeScript + Tailwind.
 - Tudo client-side → imagem não sai do dispositivo → LGPD-friendly.
 - Custo de infra ~ zero no início.
+
+### Caminho A+ — 3D visual grátis, sem hardware (foto única + IA)
+```
+1 foto comum → modelo 3DMM (DECA / 3DDFA_V2) → malha 3D do rosto
+      → mostra volume/perfil para a paciente + reforça métricas
+```
+- Zero hardware especial; roda a partir de uma única foto.
+- Bom para o "uau" visual sem precisar de iPhone com TrueDepth.
 
 ### Caminho B — 3D com celular (mais preciso, Fase 3)
 ```
@@ -122,3 +169,10 @@ iPhone TrueDepth (ARKit) → malha 3D + blendshapes
 - TensorFlow.js face-landmarks-detection — https://www.npmjs.com/package/@tensorflow-models/face-landmarks-detection
 - Apple ARKit (Face Tracking) — https://www.sidekickinteractive.com/uncategorized/apples-arkit-for-scanning-and-tracking-faces/
 - Apps de scan 3D (Scandy/Heges/SureScan) — https://www.artec3d.com/learning-center/best-3d-scanner-apps
+- Meshroom (AliceVision, fotogrametria open-source) — https://alicevision.org/#meshroom
+- COLMAP (structure-from-motion) — https://colmap.github.io/
+- KIRI Engine (scan 3D no celular, freemium) — https://www.kiriengine.app/
+- Luma AI (NeRF / Gaussian Splatting) — https://lumalabs.ai/
+- DECA (reconstrução 3D de rosto de foto única) — https://github.com/yfeng95/DECA
+- 3DDFA_V2 (rosto 3D leve de foto única) — https://github.com/cleardusk/3DDFA_V2
+- FLAME (modelo 3D de cabeça) — https://flame.is.tue.mpg.de/
