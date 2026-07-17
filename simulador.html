@@ -94,6 +94,37 @@
   .disclaimer{font-size:11px;color:var(--muted);background:#f8f1ee;border:1px solid var(--nude);border-radius:12px;padding:12px;margin-top:16px;line-height:1.5}
   .foot{max-width:1180px;margin:0 auto;padding:0 20px 40px;font-size:11px;color:var(--muted)}
   .hidden{display:none}
+
+  /* abas principais */
+  .maintabs{max-width:1180px;margin:16px auto 0;padding:0 20px;display:flex;gap:8px}
+  .maintabs .mt{padding:11px 20px;border:1px solid var(--line);border-bottom:none;background:#f6eeeb;border-radius:12px 12px 0 0;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer}
+  .maintabs .mt.active{background:#fff;color:var(--rose-d);border-color:var(--nude)}
+  /* relatório / anamnese */
+  .rep-wrap{max-width:1180px;margin:0 auto;padding:0 20px 60px;display:grid;gap:20px}
+  .ana-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:760px){.ana-grid{grid-template-columns:1fr}}
+  .toggles{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+  @media(max-width:760px){.toggles{grid-template-columns:1fr}}
+  .tg{display:flex;align-items:center;gap:8px;font-size:12px;background:#f8f1ee;border:1px solid var(--line);border-radius:10px;padding:9px 11px;cursor:pointer;user-select:none}
+  .tg input{width:auto;margin:0}
+  .alert{border-radius:10px;padding:10px 12px;font-size:12px;margin-bottom:8px;border:1px solid}
+  .alert.warn{background:#fdf1e4;border-color:#f0d9b8;color:#8a5a1a}
+  .alert.info{background:#eef4fb;border-color:#cfe0f2;color:#2c5a8a}
+  .rep-item{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+  .rep-item h4{margin:0 0 4px;font-size:14px}
+  .rep-item .why{font-size:11px;color:var(--rose-d);background:#fdf6f8;border-radius:8px;padding:6px 8px;margin:6px 0}
+  .judge{display:flex;gap:8px;margin-top:6px}
+  .judge button{flex:1;padding:9px;border-radius:9px;border:1px solid var(--line);background:#fff;font-size:12px;font-weight:600;cursor:pointer}
+  .judge button.agree.on{background:var(--ok);color:#fff;border-color:var(--ok)}
+  .judge button.dis.on{background:var(--hi);color:#fff;border-color:var(--hi)}
+  .rep-item textarea{margin-top:8px;min-height:38px;resize:vertical}
+  .summary-pill{display:flex;gap:16px;font-size:12px;margin:12px 0;flex-wrap:wrap}
+  .summary-pill b{font-size:16px}
+  @media print{
+    header,.maintabs,#view-avaliacao,.foot,.repHideOnPrint,.card:has(#btnGerarRel){display:none!important}
+    #relOut{box-shadow:none;border:none;padding:0}
+    body{background:#fff}
+  }
 </style>
 </head>
 <body>
@@ -105,6 +136,12 @@
   <span class="badge">Apoio à decisão · revisão profissional obrigatória</span>
 </header>
 
+<nav class="maintabs">
+  <button class="mt active" data-view="avaliacao">🔬 Avaliação</button>
+  <button class="mt" data-view="relatorio">📋 Relatório da Anamnese</button>
+</nav>
+
+<div id="view-avaliacao">
 <div class="wrap">
   <!-- COLUNA ESQUERDA: captura + análise -->
   <div class="card">
@@ -201,6 +238,43 @@
       <strong>⚠️ Aviso.</strong> Este simulador é uma <b>ferramenta de apoio à decisão</b>, não realiza diagnóstico e não prescreve.
       As sugestões são um ponto de partida e devem ser <b>revisadas, editadas ou descartadas por profissional habilitado</b>.
       Simulação ilustrativa, sem promessa de resultado. Uso de imagem e dados de saúde exige consentimento (LGPD).
+    </div>
+  </div>
+</div>
+</div><!-- /view-avaliacao -->
+
+<div id="view-relatorio" class="hidden">
+  <div class="rep-wrap">
+    <div class="card">
+      <h2>📋 Anamnese</h2>
+      <div class="ana-grid">
+        <div><label>Paciente (identificação)</label><input id="anaNome" placeholder="Ex.: Paciente M.S."></div>
+        <div><label>Alergias</label><input id="anaAlergia" placeholder="Ex.: nenhuma / lidocaína"></div>
+        <div><label>Medicamentos em uso</label><input id="anaMed" placeholder="Ex.: nenhum"></div>
+        <div><label>Procedimentos estéticos anteriores</label><input id="anaProc" placeholder="Ex.: toxina há 1 ano"></div>
+      </div>
+      <label>Doenças / condições</label>
+      <div class="chips" id="anaCond">
+        <span data-c="diabetes">Diabetes</span>
+        <span data-c="hipertensao">Hipertensão</span>
+        <span data-c="autoimune">Doença autoimune</span>
+        <span data-c="tireoide">Tireoide</span>
+      </div>
+      <div class="toggles">
+        <label class="tg"><input type="checkbox" id="tgGestante"> Gestante / lactante</label>
+        <label class="tg"><input type="checkbox" id="tgIso"> Isotretinoína (últimos 6 meses)</label>
+        <label class="tg"><input type="checkbox" id="tgAnti"> Uso de anticoagulante</label>
+        <label class="tg"><input type="checkbox" id="tgQueloide"> Tendência a queloide</label>
+        <label class="tg"><input type="checkbox" id="tgHerpes"> Herpes labial recorrente</label>
+        <label class="tg"><input type="checkbox" id="tgFumo"> Tabagista</label>
+      </div>
+      <label>Expectativa da paciente</label>
+      <textarea id="anaExpect" placeholder="O que a paciente deseja alcançar..."></textarea>
+      <button class="btn btn-primary" id="btnGerarRel" style="width:100%;margin-top:12px">Gerar / atualizar relatório</button>
+    </div>
+
+    <div class="card" id="relOut">
+      <p style="font-size:12px;color:var(--muted)">Rode a análise na aba <b>Avaliação</b> (capturar → analisar rosto) e clique em <b>Gerar / atualizar relatório</b>.</p>
     </div>
   </div>
 </div>
@@ -432,6 +506,104 @@ $('btnReset').onclick=()=>location.reload();
 
 /* ---------- Stepper ---------- */
 function setStep(n){ document.querySelectorAll('#steps div').forEach(d=>{const s=+d.dataset.s; d.classList.toggle('active',s===n); d.classList.toggle('done',s<n);}); }
+
+/* ================= ABA: RELATÓRIO DA ANAMNESE ================= */
+document.querySelectorAll('.maintabs .mt').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('.maintabs .mt').forEach(x=>x.classList.remove('active')); b.classList.add('active');
+    const v=b.dataset.view;
+    $('view-avaliacao').classList.toggle('hidden', v!=='avaliacao');
+    $('view-relatorio').classList.toggle('hidden', v!=='relatorio');
+    if(v==='relatorio') generateReport();
+  };
+});
+
+const anaCond=new Set();
+document.querySelectorAll('#anaCond span').forEach(s=>{
+  s.onclick=()=>{ s.classList.toggle('on'); s.classList.contains('on')?anaCond.add(s.dataset.c):anaCond.delete(s.dataset.c); };
+});
+let repConcl='';
+
+function collectAnamnese(){
+  return {
+    identificacao:$('anaNome').value, alergias:$('anaAlergia').value, medicamentos:$('anaMed').value,
+    procedimentosAnteriores:$('anaProc').value, expectativa:$('anaExpect').value, condicoes:[...anaCond],
+    gestante:$('tgGestante').checked, isotretinoina:$('tgIso').checked, anticoagulante:$('tgAnti').checked,
+    queloide:$('tgQueloide').checked, herpes:$('tgHerpes').checked, tabagista:$('tgFumo').checked
+  };
+}
+function buildAlerts(a){
+  const A=[];
+  if(a.gestante) A.push(['warn','Gestante/lactante: toxina botulínica e preenchimentos são geralmente contraindicados — adiar injetáveis.']);
+  if(a.isotretinoina) A.push(['warn','Isotretinoína recente: aguardar janela de segurança para procedimentos ablativos / que rompem a pele.']);
+  if(a.anticoagulante) A.push(['warn','Anticoagulante: maior risco de hematoma em injetáveis — avaliar conduta.']);
+  if(a.queloide) A.push(['warn','Tendência a queloide: cautela com procedimentos que lesionam a pele.']);
+  if(a.herpes) A.push(['info','Herpes recorrente: considerar profilaxia antiviral antes de preenchimento perioral.']);
+  if(a.tabagista) A.push(['info','Tabagismo: pode impactar cicatrização e qualidade da pele.']);
+  if(a.alergias && !/^\s*(nenhum|nao|não|-|n\/a)/i.test(a.alergias)) A.push(['warn','Alergias relatadas ('+a.alergias+'): verificar composição dos produtos.']);
+  return A;
+}
+function generateReport(){
+  const out=$('relOut');
+  if(!plan || !plan.length){ out.innerHTML='<p style="font-size:12px;color:var(--muted)">Rode a análise na aba <b>Avaliação</b> primeiro (capturar → analisar rosto).</p>'; return; }
+  const a=collectAnamnese(), imc=calcIMC(), alerts=buildAlerts(a);
+  const items=plan.filter(s=>s.status!=='rejected');
+  const nC=items.filter(s=>s.parecer==='concordo').length, nD=items.filter(s=>s.parecer==='discordo').length, nP=items.filter(s=>!s.parecer).length;
+  out.innerHTML=`
+    <h2>Relatório da anamnese</h2>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:10px">
+      ${a.identificacao?('<b>'+esc(a.identificacao)+'</b> · '):''}IMC ${imc?imc.toFixed(1):'—'} · meta ${esc($('meta').value)} kg · idade ${esc($('idade').value)}${a.condicoes.length?(' · '+a.condicoes.join(', ')):''}
+      ${a.expectativa?('<br>Expectativa: '+esc(a.expectativa)):''}
+    </div>
+    ${alerts.length?('<strong style="font-size:12px">Pontos de atenção (contraindicações)</strong>'+alerts.map(x=>`<div class="alert ${x[0]}">⚠️ ${esc(x[1])}</div>`).join('')):''}
+    <div class="summary-pill"><span>Concordo: <b style="color:var(--ok)">${nC}</b></span><span>Discordo: <b style="color:var(--hi)">${nD}</b></span><span>Pendente: <b>${nP}</b></span><span>Total: <b>${items.length}</b></span></div>
+    <div id="repItems"></div>
+    <label>Parecer / conclusão do profissional</label>
+    <textarea id="repConclusao" placeholder="Conclusão, conduta proposta e observações...">${esc(repConcl)}</textarea>
+    <div class="row repHideOnPrint" style="margin-top:10px">
+      <button class="btn btn-ghost" id="btnRelJson">⬇️ Exportar relatório (JSON)</button>
+      <button class="btn btn-primary" id="btnRelPrint" style="margin-left:auto">🖨️ Imprimir / PDF</button>
+    </div>
+    <div class="disclaimer" style="margin-top:14px">As sugestões acima são geradas por software de <b>apoio à decisão</b> e não substituem avaliação profissional. O parecer (concordo/discordo) e a conclusão são de responsabilidade do profissional habilitado.</div>`;
+  renderRepItems(items);
+  $('repConclusao').addEventListener('input',e=>repConcl=e.target.value);
+  $('btnRelJson').onclick=()=>exportReport(a);
+  $('btnRelPrint').onclick=()=>window.print();
+}
+function renderRepItems(items){
+  $('repItems').innerHTML=items.map(s=>`
+    <div class="rep-item" data-id="${s.id}">
+      <span class="prio ${s.prio}" style="float:right">${s.prio}</span>
+      <h4>${esc(s.t)}</h4>
+      <div style="font-size:12px;color:var(--muted)">Área: ${esc(s.area)}</div>
+      <div class="why">Justificativa da IA: ${esc(s.why)}</div>
+      <div class="judge">
+        <button class="agree ${s.parecer==='concordo'?'on':''}" data-a="concordo">✔ Concordo</button>
+        <button class="dis ${s.parecer==='discordo'?'on':''}" data-a="discordo">✘ Discordo</button>
+      </div>
+      <textarea placeholder="Observação do profissional (opcional)">${esc(s.parecerNota||'')}</textarea>
+    </div>`).join('');
+  $('repItems').querySelectorAll('.rep-item').forEach(node=>{
+    const item=plan.find(p=>p.id===+node.dataset.id);
+    node.querySelector('[data-a="concordo"]').onclick=()=>{item.parecer=item.parecer==='concordo'?null:'concordo';generateReport();};
+    node.querySelector('[data-a="discordo"]').onclick=()=>{item.parecer=item.parecer==='discordo'?null:'discordo';generateReport();};
+    node.querySelector('textarea').addEventListener('input',e=>{item.parecerNota=e.target.value;});
+  });
+}
+function exportReport(a){
+  const imc=calcIMC();
+  const data={tipo:'relatorio-anamnese',
+    paciente:{identificacao:a.identificacao,idade:+$('idade').value},
+    corpo:{pesoKg:+$('peso').value,alturaM:+$('altura').value,imc:imc&&+imc.toFixed(1),metaPerdaKg:+$('meta').value},
+    anamnese:a, queixas:[...selectedQ], metricasFaciais:metrics,
+    pareceres:plan.filter(s=>s.status!=='rejected').map(s=>({procedimento:s.t,area:s.area,prioridade:s.prio,justificativaIA:s.why,parecer:s.parecer||'pendente',observacao:s.parecerNota||''})),
+    conclusaoProfissional:repConcl,
+    aviso:'Ferramenta de apoio à decisão. Revisão profissional obrigatória. Simulação ilustrativa.'};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const el=document.createElement('a'); el.href=URL.createObjectURL(blob); el.download='relatorio-anamnese.json'; el.click();
+}
+function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+$('btnGerarRel').onclick=generateReport;
 </script>
 </body>
 </html>
